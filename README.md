@@ -47,21 +47,22 @@ Plus tard : l'envoi pourra être automatique avec Resend (domaine belleflamme.ca
 - Les fonctions sensibles sont dans le schéma `prive`, non exposé par l'API.
 - Exception voulue : `signature_par_jeton` et `confirmer_signature` sont publiques (page « Ma signature »). Elles exigent le jeton privé de l'employé et n'exposent que les infos déjà visibles dans sa signature. Si un lien circule par erreur, il suffit de régénérer le jeton (`update employes set jeton = gen_random_uuid() where ...`).
 
-## Connexion des gestionnaires
+## Connexion des gestionnaires (invitations, sans service d'envoi)
 
-- **La table `gestionnaires` est la seule porte d'entrée.** Un trigger sur `auth.users` refuse la création de tout compte dont le courriel n'y est pas (et hors @belleflamme.ca).
-- **Ajouter un gestionnaire** : dans l'app, section Gestionnaires, ajouter son courriel. Il va ensuite sur le site, entre son courriel, clique « Première connexion ou mot de passe oublié? », ouvre le lien reçu, puis choisit un mot de passe via « Mon mot de passe ».
-- **Retirer un gestionnaire** : le retirer de la liste supprime aussi son compte (trigger `retirer_compte_gestionnaire`). Il perd l'accès immédiatement. On ne peut pas se retirer soi-même.
-- Ensuite, connexion par **courriel + mot de passe** (retenus par le navigateur); la session reste ouverte.
-- **Envoi des liens** : le serveur d'envoi par défaut de Supabase n'envoie qu'aux membres de l'équipe Supabase. Pour les autres gestionnaires, brancher un SMTP (Resend, Microsoft 365) dans Authentication › Emails › SMTP Settings.
+- **Ajouter un gestionnaire** : section Gestionnaires › ajouter son courriel. L'app ouvre aussitôt un courriel prêt à partir dans ton Outlook, avec son lien d'invitation personnel (`/bienvenue.html?i=...`). Tu cliques Envoyer.
+- **Le gestionnaire** ouvre le lien, choisit son mot de passe, et entre dans l'app. Ensuite : courriel + mot de passe (retenus par le navigateur), session gardée ouverte.
+- **Sécurité (appliquée par la base)** : un compte ne peut être créé qu'avec un courriel de la liste ET son jeton d'invitation, utilisable une seule fois.
+- **Mot de passe oublié** : « Réinitialiser l'accès » à côté de son nom (supprime son compte, crée une nouvelle invitation et ouvre ton Outlook).
+- **Retirer** : supprime son compte, accès coupé immédiatement.
+- Prérequis Supabase : Authentication › Sign In / Providers › Email › **Confirm email désactivé** (l'invitation remplace la confirmation).
 
 ## Configuration Supabase à faire dans le tableau de bord
 
 1. **Authentication › URL Configuration**
    - Site URL : `https://belleflamme-signature.netlify.app`
    - Redirect URLs : `https://belleflamme-signature.netlify.app/**`
-2. **Authentication › Emails › SMTP Settings** : brancher un vrai serveur d'envoi (Resend, Microsoft 365, etc.).
-   Sans ça, Supabase n'envoie les liens de connexion qu'aux membres de l'équipe Supabase, avec une limite très basse par heure.
+2. **Authentication › Sign In / Providers › Email** : « Confirm email » désactivé.
+3. Aucun serveur d'envoi requis : les invitations et liens de signature partent de l'Outlook du gestionnaire.
 
 ## Installer une signature
 

@@ -6,6 +6,7 @@ import { creerRepertoire } from './repertoire.js';
 
 const sb = createClient(SUPABASE_URL, SUPABASE_CLE_PUBLIQUE);
 const $ = (id) => document.getElementById(id);
+const CHAMPS_GEST = 'courriel, nom, invitation, invitation_utilisee_le';
 
 const etat = { employes: [], courant: null, utilisateur: null, vue: 'fiches' };
 const form = $('form-employe');
@@ -45,7 +46,8 @@ const traduireErreur = (e) => {
   const m = e?.message || '';
   if (/invalid login credentials/i.test(m)) return 'Courriel ou mot de passe incorrect.';
   if (/email not confirmed/i.test(m)) return 'Compte pas encore confirmé. Utilise le lien par courriel ci-dessous.';
-  if (/database error saving new user|acces_refuse|signups not allowed/i.test(m)) return 'Ce courriel n\'a pas accès. Demande à un gestionnaire de t\'ajouter à la liste.';
+  if (/database error saving new user|acces_refuse|invitation_invalide|signups not allowed|otp_disabled/i.test(m)) return 'Ce courriel n\'a pas encore de compte. Utilise le lien d\'invitation reçu par courriel, ou demande à un gestionnaire de t\'en renvoyer un.';
+  if (/not authorized|email address .* not authorized|error sending/i.test(m)) return 'Envoi impossible. Demande à un gestionnaire de réinitialiser ton accès : tu recevras une nouvelle invitation.';
   if (/rate limit|too many/i.test(m)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
   if (/should be different/i.test(m)) return 'Le nouveau mot de passe doit être différent de l\'ancien.';
   if (/weak|at least/i.test(m)) return 'Mot de passe trop faible. Allonge-le ou ajoute des chiffres et symboles.';
@@ -73,7 +75,7 @@ $('btn-lien-magique').addEventListener('click', async () => {
   message(msg, 'Envoi en cours...');
   const { error } = await sb.auth.signInWithOtp({
     email: courriel,
-    options: { emailRedirectTo: location.origin + location.pathname },
+    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false },
   });
   if (error) return message(msg, traduireErreur(error), 'err');
   message(msg, `Lien envoyé à ${courriel}. Ouvre-le dans ce navigateur, puis clique « Mon mot de passe » en haut pour en choisir un.`, 'ok');
@@ -119,7 +121,7 @@ async function demarrer(session) {
   if (!u) return ecran('ecran-connexion');
 
   // Un non-gestionnaire ne voit aucune ligne (RLS)
-  const { data, error } = await sb.from('gestionnaires').select('courriel, nom').order('courriel');
+  const { data, error } = await sb.from('gestionnaires').select(CHAMPS_GEST).order('courriel');
   if (error || !data?.length) return ecran('ecran-refus');
   afficherGestionnaires(data);
   ecran('ecran-app');
@@ -329,39 +331,85 @@ $('btn-telecharger').addEventListener('click', () => {
 });
 
 // ---------- Gestionnaires ----------
+const lienInvitation = (g) => `${location.origin}/bienvenue.html?i=${encodeURIComponent(g.invitation)}`;
+
+// Ouvre un courriel prêt à envoyer dans l'Outlook du gestionnaire connecté
+function envoyerInvitation(g) {
+  const sujet = 'Ton accès à l\'app des signatures Belleflamme';
+  const corps = [
+    'Bonjour,',
+    '',
+    'Tu as maintenant accès à l\'app des signatures courriel Belleflamme.',
+    'Clique sur ce lien pour choisir ton mot de passe (lien personnel, utilisable une seule fois) :',
+    lienInvitation(g),
+    '',
+    `Ensuite, connecte-toi sur ${location.origin} avec ton courriel et ton mot de passe.`,
+    '',
+    'Merci!',
+  ].join('\r\n');
+  location.href = `mailto:${encodeURIComponent(g.courriel)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+}
+
 function afficherGestionnaires(liste) {
   const ul = $('liste-gestionnaires');
   ul.replaceChildren();
   const moi = etat.utilisateur?.email?.toLowerCase();
   for (const g of liste) {
     const li = document.createElement('li');
+    li.className = 'gest';
     const t = document.createElement('span'); t.textContent = g.courriel;
-    li.append(t);
+    const st = document.createElement('span');
+    const actif = !!g.invitation_utilisee_le;
+    st.className = 'pastille ' + (actif ? 'vert' : 'orange');
+    st.textContent = actif ? 'Actif' : 'Invitation en attente';
+    li.append(t, st);
     if (g.courriel !== moi) {
-      const b = document.createElement('button');
-      b.className = 'btn-lien'; b.textContent = 'Retirer';
-      b.addEventListener('click', async () => {
+      const actions = document.createElement('span'); actions.className = 'gest-actions';
+      if (!actif) {
+        const bInv = document.createElement('button');
+        bInv.className = 'btn-lien'; bInv.textContent = 'Envoyer l\'invitation';
+        bInv.addEventListener('click', () => envoyerInvitation(g));
+        actions.append(bInv);
+      } else {
+        const bRe = document.createElement('button');
+        bRe.className = 'btn-lien'; bRe.textContent = 'Réinitialiser l\'accès';
+        bRe.title = 'Mot de passe oublié : supprime son compte et prépare une nouvelle invitation';
+        bRe.addEventListener('click', async () => {
+          if (!confirm(`Réinitialiser l'accès de ${g.courriel}? Son mot de passe actuel ne fonctionnera plus et une nouvelle invitation sera préparée dans ton Outlook.`)) return;
+          const { error: e1 } = await sb.from('gestionnaires').delete().eq('courriel', g.courriel);
+          if (e1) return alert('Erreur : ' + e1.message);
+          const { data, error: e2 } = await sb.from('gestionnaires').insert({ courriel: g.courriel, nom: g.nom }).select(CHAMPS_GEST).single();
+          if (e2) return alert('Erreur : ' + e2.message);
+          await rechargerGestionnaires();
+          envoyerInvitation(data);
+        });
+        actions.append(bRe);
+      }
+      const bRet = document.createElement('button');
+      bRet.className = 'btn-lien'; bRet.textContent = 'Retirer';
+      bRet.addEventListener('click', async () => {
         if (!confirm(`Retirer ${g.courriel} des gestionnaires? Son compte sera supprimé et il perdra l'accès immédiatement.`)) return;
         const { error } = await sb.from('gestionnaires').delete().eq('courriel', g.courriel);
         if (error) return alert('Erreur : ' + error.message);
         rechargerGestionnaires();
       });
-      li.append(b);
+      actions.append(bRet);
+      li.append(actions);
     }
     ul.append(li);
   }
 }
 async function rechargerGestionnaires() {
-  const { data } = await sb.from('gestionnaires').select('courriel, nom').order('courriel');
+  const { data } = await sb.from('gestionnaires').select(CHAMPS_GEST).order('courriel');
   afficherGestionnaires(data || []);
 }
 $('form-gestionnaire').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const c = $('gest-courriel').value.trim().toLowerCase();
   if (!c.endsWith(DOMAINE)) return alert(`Seules les adresses ${DOMAINE} sont acceptées.`);
-  const { error } = await sb.from('gestionnaires').insert({ courriel: c });
+  const { data, error } = await sb.from('gestionnaires').insert({ courriel: c }).select(CHAMPS_GEST).single();
   if (error) return alert(error.code === '23505' ? 'Déjà gestionnaire.' : 'Erreur : ' + error.message);
   $('gest-courriel').value = '';
-  rechargerGestionnaires();
-  alert(`${c} est ajouté. Il peut maintenant aller sur ${location.host}, entrer son courriel et cliquer « Première connexion ou mot de passe oublié? » pour recevoir son lien.`);
+  await rechargerGestionnaires();
+  envoyerInvitation(data);
 });

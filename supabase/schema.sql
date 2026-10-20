@@ -106,3 +106,15 @@ alter table public.employes
 -- prive.bloquer_domaine_externe() refuse maintenant tout courriel absent de public.gestionnaires.
 -- Trigger retirer_compte_gestionnaire (after delete on public.gestionnaires) :
 --   supprime le compte auth.users correspondant, ce qui coupe l'accès immédiatement.
+
+-- ---------------------------------------------------------------
+-- Invitations des gestionnaires, appliqué le 19 oct. 2026
+-- ---------------------------------------------------------------
+alter table public.gestionnaires
+  add column invitation uuid not null default gen_random_uuid(),
+  add column invitation_utilisee_le timestamptz;
+-- prive.bloquer_domaine_externe() exige maintenant : courriel dans gestionnaires
+--   + raw_user_meta_data->>'invitation' = gestionnaires.invitation + invitation non utilisée,
+--   puis marque l'invitation comme utilisée.
+-- public.invitation_gestionnaire(p_invitation uuid) (publique) : courriel + validité, pour /bienvenue.html.
+-- Réinitialisation = retirer puis rajouter le gestionnaire (nouveau jeton; le trigger supprime l'ancien compte).

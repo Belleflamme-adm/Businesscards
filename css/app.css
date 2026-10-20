@@ -151,3 +151,10 @@ select { font: inherit; padding: 9px 11px; border: 1px solid #cfcfcf; border-rad
 .petit-lien { font-size: 13px; color: var(--gris); text-align: left; padding: 0; }
 .voile { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: grid; place-items: center; padding: 16px; z-index: 10; }
 .voile[hidden] { display: none; }
+
+/* Gestionnaires et invitations */
+#liste-gestionnaires li.gest { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f0ee; }
+#liste-gestionnaires li.gest > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.gest-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; }
+.gest-actions .btn-lien { font-size: 13px; padding: 0; }
+.connexion a.btn { text-align: center; text-decoration: none; }
