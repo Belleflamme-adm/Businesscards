@@ -83,3 +83,14 @@ export function fichierOutlook(e) {
 ${signatureHTML(e)}
 </body></html>`;
 }
+
+// Réduit l'aperçu à l'écran si la signature est plus large que son conteneur (cellulaire)
+export function ajusterApercu(conteneur) {
+  const t = conteneur.firstElementChild;
+  if (!t) return;
+  t.style.zoom = '';
+  const style = getComputedStyle(conteneur);
+  const dispo = conteneur.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const largeur = t.scrollWidth;
+  if (largeur > dispo) t.style.zoom = String(Math.max(0.4, dispo / largeur));
+}

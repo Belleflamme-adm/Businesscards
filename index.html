@@ -37,6 +37,33 @@
   </div>
 </main>
 
+<!-- Onglets -->
+<nav id="onglets" class="onglets" hidden>
+  <button type="button" class="onglet actif" data-vue="fiches">Fiches</button>
+  <button type="button" class="onglet" data-vue="repertoire">Répertoire</button>
+</nav>
+
+<!-- Répertoire -->
+<main id="ecran-repertoire" class="repertoire" hidden>
+  <div class="rep-entete">
+    <input type="search" id="rep-recherche" placeholder="Rechercher">
+    <span id="rep-compte" class="msg"></span>
+    <span class="espace"></span>
+    <button class="btn btn-sec" id="rep-tous">Demander à tous de mettre à jour</button>
+  </div>
+  <p class="msg">Clique dans une cellule pour modifier. La modification est enregistrée quand tu quittes la cellule (ou Entrée). Échap annule.</p>
+  <div class="rep-tableau">
+    <table id="rep-table">
+      <thead><tr>
+        <th>Signature</th><th>Prénom</th><th>Nom</th><th>Titre</th><th>Division</th><th>Courriel</th>
+        <th>Cellulaire</th><th>Bureau</th><th>Poste</th><th class="col-actions"></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p id="rep-msg" class="msg" role="status"></p>
+</main>
+
 <!-- App -->
 <main id="ecran-app" class="app" hidden>
   <aside class="liste">
@@ -59,6 +86,7 @@
   <section class="travail">
     <form id="form-employe" class="carte">
       <h2 id="form-titre">Nouvel employé</h2>
+      <p id="form-statut" class="statut" hidden></p>
       <div class="grille">
         <label>Prénom<input name="prenom" required></label>
         <label>Nom<input name="nom" required></label>
@@ -79,6 +107,8 @@
       <div class="actions">
         <button class="btn" type="submit">Enregistrer</button>
         <button class="btn btn-sec" type="button" id="btn-actif" hidden>Désactiver</button>
+        <button class="btn btn-sec" type="button" id="btn-envoyer-lien" hidden>Envoyer le lien de mise à jour</button>
+        <button class="btn btn-sec" type="button" id="btn-copier-lien" hidden>Copier le lien</button>
         <span id="form-msg" class="msg" role="status"></span>
       </div>
     </form>

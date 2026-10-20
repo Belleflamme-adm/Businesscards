@@ -70,3 +70,23 @@ end $$;
 revoke all on function prive.bloquer_domaine_externe() from public, anon, authenticated;
 create trigger bloquer_domaine_externe before insert on auth.users
 for each row execute function prive.bloquer_domaine_externe();
+
+-- ---------------------------------------------------------------
+-- Suivi des mises à jour de signature (option 3), appliqué le 19 oct. 2026
+-- ---------------------------------------------------------------
+alter table public.employes
+  add column jeton uuid not null default gen_random_uuid() unique,  -- lien privé "Ma signature"
+  add column version_signature integer not null default 1,          -- +1 à chaque changement d'info affichée
+  add column version_confirmee integer not null default 0,          -- dernière version installée par l'employé
+  add column confirme_le timestamptz,
+  add column demande_le timestamptz;
+
+-- employes_touch() incrémente version_signature quand prenom, nom, titre, division,
+-- courriel, cellulaire, bureau ou poste changent.
+
+-- Fonctions publiques (SECURITY DEFINER, appelables sans connexion) : VOULU.
+-- Elles ne donnent accès qu'à UN employé actif, et seulement à qui possède son jeton (UUID aléatoire).
+--   public.signature_par_jeton(p_jeton uuid)
+--   public.confirmer_signature(p_jeton uuid, p_version integer)
+-- Fonction réservée aux gestionnaires (SECURITY INVOKER, donc soumise au RLS) :
+--   public.demander_mise_a_jour_tous()

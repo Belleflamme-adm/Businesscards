@@ -13,6 +13,9 @@ Petite app pour créer les signatures courriel HTML des employés du Groupe Bell
 | `index.html`, `css/app.css` | Interface |
 | `js/app.js` | Connexion, liste des employés, formulaire, copie et téléchargement |
 | `js/signature.js` | Génère le HTML de la signature (tableaux + styles en ligne pour Outlook/Gmail) |
+| `js/repertoire.js` | Onglet Répertoire : tous les employés, modifiables dans les cellules |
+| `js/suivi.js` | Statut de signature (à jour / à mettre à jour) et envoi du lien |
+| `ma-signature.html`, `js/ma-signature.js` | Page personnelle de chaque employé (lien privé) : copier, télécharger, confirmer |
 | `js/config.js` | URL et clé **publique** Supabase (sans danger côté navigateur, la sécurité est dans les règles RLS) |
 | `img/` | Logo et icônes utilisés par **toutes les signatures envoyées** |
 | `supabase/schema.sql` | Référence du schéma (déjà appliqué) |
@@ -23,11 +26,24 @@ Les signatures pointent vers `https://belleflamme-business-cards.netlify.app/img
 **Ne jamais renommer, déplacer ni supprimer un fichier de `img/`**, et ne jamais renommer le site Netlify : chaque courriel déjà envoyé perdrait son logo.
 Pour changer une image, ajoute un nouveau fichier (ex. `logo-belleflamme-v2.png`) et mets à jour `js/signature.js`.
 
+## Mise à jour des signatures (option 3)
+
+Une signature collée dans Outlook est une copie figée : Microsoft n'offre aucun moyen de la remplacer à distance.
+Le fonctionnement retenu :
+
+1. Tu modifies un employé (fiche ou répertoire). S'il s'agit d'une info affichée dans la signature, sa signature passe à « À mettre à jour ».
+2. « Envoyer » ouvre un brouillon dans ton Outlook avec le lien privé de l'employé.
+3. L'employé ouvre le lien, copie sa signature, la colle dans Outlook et clique « C'est fait ». Le statut redevient « À jour ».
+4. Après un changement de design, « Demander à tous de mettre à jour » remet tout le monde à « À mettre à jour ».
+
+Plus tard : l'envoi pourra être automatique avec Resend (domaine belleflamme.ca à vérifier dans le DNS).
+
 ## Sécurité
 
 - RLS activé sur `employes` et `gestionnaires` : un compte connecté qui n'est pas gestionnaire ne voit rien.
 - Un trigger sur `auth.users` refuse toute création de compte hors `@belleflamme.ca`.
 - Les fonctions sensibles sont dans le schéma `prive`, non exposé par l'API.
+- Exception voulue : `signature_par_jeton` et `confirmer_signature` sont publiques (page « Ma signature »). Elles exigent le jeton privé de l'employé et n'exposent que les infos déjà visibles dans sa signature. Si un lien circule par erreur, il suffit de régénérer le jeton (`update employes set jeton = gen_random_uuid() where ...`).
 
 ## Configuration Supabase à faire dans le tableau de bord
 

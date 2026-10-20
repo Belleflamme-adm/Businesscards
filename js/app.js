@@ -1,16 +1,39 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_CLE_PUBLIQUE, DOMAINE } from './config.js';
-import { signatureHTML, signatureTexte, fichierOutlook, chiffres } from './signature.js';
+import { signatureHTML, signatureTexte, fichierOutlook, chiffres, ajusterApercu } from './signature.js';
+import { statut, envoyerLien, lienSignature } from './suivi.js';
+import { creerRepertoire } from './repertoire.js';
 
 const sb = createClient(SUPABASE_URL, SUPABASE_CLE_PUBLIQUE);
 const $ = (id) => document.getElementById(id);
 
-const etat = { employes: [], courant: null, utilisateur: null };
+const etat = { employes: [], courant: null, utilisateur: null, vue: 'fiches' };
 const form = $('form-employe');
 
 function ecran(nom) {
-  for (const id of ['ecran-connexion', 'ecran-refus', 'ecran-app']) $(id).hidden = id !== nom;
+  for (const id of ['ecran-connexion', 'ecran-refus']) $(id).hidden = id !== nom;
+  const dansApp = nom === 'ecran-app';
+  $('onglets').hidden = !dansApp;
+  $('ecran-app').hidden = !dansApp || etat.vue !== 'fiches';
+  $('ecran-repertoire').hidden = !dansApp || etat.vue !== 'repertoire';
 }
+
+// ---------- Onglets ----------
+for (const b of document.querySelectorAll('.onglet')) {
+  b.addEventListener('click', () => {
+    etat.vue = b.dataset.vue;
+    for (const x of document.querySelectorAll('.onglet')) x.classList.toggle('actif', x === b);
+    ecran('ecran-app');
+    if (etat.vue === 'repertoire') repertoire.afficher();
+    else { afficherListe(); if (etat.courant) ouvrir(etat.employes.find((x) => x.id === etat.courant.id) || etat.courant); }
+  });
+}
+
+// Le répertoire prévient quand il modifie un employé
+const repertoire = creerRepertoire({
+  sb, $, etat,
+  rafraichirAilleurs: (e) => { if (etat.courant?.id === e.id) etat.courant = e; },
+});
 function message(el, texte, type = '') {
   el.textContent = texte;
   el.className = 'msg' + (type ? ' ' + type : '');
@@ -106,11 +129,25 @@ function remplir(e) {
   for (const el of form.elements) if (el.name) el.value = e?.[el.name] ?? '';
 }
 
+function afficherStatut(e) {
+  const p = $('form-statut');
+  if (!e) { p.hidden = true; return; }
+  const s = statut(e);
+  p.hidden = false;
+  p.innerHTML = '';
+  const b = document.createElement('span');
+  b.className = 'pastille ' + s.classe; b.textContent = 'Signature : ' + s.texte;
+  p.append(b);
+}
+
 function nouveau() {
   etat.courant = null;
   remplir(null);
   $('form-titre').textContent = 'Nouvel employé';
   $('btn-actif').hidden = true;
+  $('btn-envoyer-lien').hidden = true;
+  $('btn-copier-lien').hidden = true;
+  afficherStatut(null);
   message($('form-msg'), '');
   apercu();
   afficherListe();
@@ -123,6 +160,9 @@ function ouvrir(e) {
   $('form-titre').textContent = `${e.prenom} ${e.nom}`;
   $('btn-actif').hidden = false;
   $('btn-actif').textContent = e.actif ? 'Désactiver' : 'Réactiver';
+  $('btn-envoyer-lien').hidden = !e.actif;
+  $('btn-copier-lien').hidden = !e.actif;
+  afficherStatut(e);
   message($('form-msg'), '');
   apercu();
   afficherListe();
@@ -153,7 +193,22 @@ form.addEventListener('submit', async (ev) => {
   }
   await chargerEmployes();
   ouvrir(data);
-  message(msg, 'Enregistré.', 'ok');
+  const aEnvoyer = data.version_confirmee < data.version_signature;
+  message(msg, aEnvoyer ? 'Enregistré. Envoie le lien pour que la signature soit mise à jour.' : 'Enregistré.', 'ok');
+});
+
+$('btn-envoyer-lien').addEventListener('click', async () => {
+  const e = etat.courant; if (!e) return;
+  const maj = await envoyerLien(sb, e);
+  const i = etat.employes.findIndex((x) => x.id === maj.id);
+  if (i >= 0) etat.employes[i] = maj;
+  ouvrir(maj);
+});
+
+$('btn-copier-lien').addEventListener('click', async () => {
+  const e = etat.courant; if (!e) return;
+  await navigator.clipboard.writeText(lienSignature(e));
+  message($('form-msg'), 'Lien personnel copié.', 'ok');
 });
 
 $('btn-actif').addEventListener('click', async () => {
@@ -173,7 +228,8 @@ function donneesApercu() {
     titre: f.titre || 'Titre', courriel: f.courriel || 'prenom@belleflamme.ca',
   };
 }
-function apercu() { $('apercu').innerHTML = signatureHTML(donneesApercu()); }
+function apercu() { $('apercu').innerHTML = signatureHTML(donneesApercu()); ajusterApercu($('apercu')); }
+addEventListener('resize', () => ajusterApercu($('apercu')));
 
 function pret() {
   const f = valeurs();
@@ -201,6 +257,7 @@ $('btn-copier').addEventListener('click', async () => {
     const r = document.createRange(); r.selectNodeContents(zone);
     const s = getSelection(); s.removeAllRanges(); s.addRange(r);
     document.execCommand('copy'); s.removeAllRanges();
+    ajusterApercu(zone);
   }
   message($('apercu-msg'), 'Signature copiée. Colle-la dans Outlook.', 'ok');
 });

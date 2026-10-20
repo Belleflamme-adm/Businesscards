@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Ma signature courriel · Belleflamme</title>
+<link rel="icon" href="img/logo-belleflamme.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="barre">
+  <div class="marque"><img src="img/logo-belleflamme.png" alt="" width="36" height="36"><span>Ma signature courriel</span></div>
+</header>
+
+<main class="perso">
+  <div id="chargement" class="carte"><p class="msg">Chargement...</p></div>
+
+  <div id="invalide" class="carte" hidden>
+    <h1>Lien invalide</h1>
+    <p>Ce lien ne fonctionne plus. Demande à ton gestionnaire de te renvoyer ton lien de signature.</p>
+  </div>
+
+  <div id="contenu" hidden>
+    <div class="carte">
+      <h1 id="bonjour"></h1>
+      <p id="intro"></p>
+      <div id="etat-ok" class="bandeau-ok" hidden>Ta signature est à jour. Tu n'as rien à faire.</div>
+      <div id="apercu" class="apercu"></div>
+    </div>
+
+    <div class="carte etapes">
+      <h2>Installer en 3 étapes</h2>
+
+      <div class="etape">
+        <span class="num">1</span>
+        <div>
+          <b>Choisis ton Outlook</b>
+          <div class="choix" role="tablist">
+            <button type="button" class="choix-btn actif" data-cible="web">Outlook Web ou nouvel Outlook</button>
+            <button type="button" class="choix-btn" data-cible="classique">Outlook classique (Windows)</button>
+            <button type="button" class="choix-btn" data-cible="mobile">Outlook sur cellulaire</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <span class="num">2</span>
+        <div>
+          <div data-panneau="web">
+            <button class="btn" id="btn-copier">Copier ma signature</button>
+            <ol>
+              <li>Dans Outlook, va dans <b>Paramètres › Comptes › Signatures</b>.</li>
+              <li>Si tu as déjà une signature Belleflamme, supprime-la ou ouvre-la et efface son contenu.</li>
+              <li>Clique dans la zone de signature et colle (<b>Ctrl+V</b>, ou <b>Cmd+V</b> sur Mac).</li>
+              <li>Choisis-la par défaut pour les <b>nouveaux messages</b> et les <b>réponses/transferts</b>, puis Enregistrer.</li>
+            </ol>
+          </div>
+          <div data-panneau="classique" hidden>
+            <button class="btn" id="btn-telecharger">Télécharger ma signature</button>
+            <ol>
+              <li>Appuie sur <b>Windows + R</b>, tape <code>%APPDATA%\Microsoft\Signatures</code> et fais Entrée.</li>
+              <li>Glisse le fichier téléchargé dans ce dossier. S'il demande de remplacer l'ancien, accepte.</li>
+              <li>Redémarre Outlook, puis va dans <b>Fichier › Options › Courrier › Signatures</b> et choisis-la par défaut.</li>
+            </ol>
+          </div>
+          <div data-panneau="mobile" hidden>
+            <button class="btn" id="btn-copier-texte">Copier la version courte</button>
+            <ol>
+              <li>L'app Outlook sur cellulaire n'accepte que du texte.</li>
+              <li>Va dans <b>Paramètres › Signature</b> et colle la version courte.</li>
+            </ol>
+          </div>
+          <p id="copie-msg" class="msg" role="status"></p>
+        </div>
+      </div>
+
+      <div class="etape">
+        <span class="num">3</span>
+        <div>
+          <b>Confirme que c'est fait</b>
+          <p class="msg">Ça indique à ton gestionnaire que ta signature est à jour.</p>
+          <button class="btn" id="btn-confirmer">C'est fait, ma signature est installée</button>
+          <p id="confirme-msg" class="msg" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="js/ma-signature.js"></script>
+</body>
+</html>

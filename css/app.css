@@ -38,7 +38,7 @@ input:focus { outline: 2px solid var(--vert); outline-offset: 0; border-color: v
 .msg.ok { color: var(--vert-fonce); }
 .msg.err { color: var(--rouge); }
 
-.app { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; max-width: 1280px; margin: 0 auto; }
+.app { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; }
 .liste { display: grid; gap: 10px; align-content: start; }
 .liste-entete { display: flex; gap: 8px; }
 .bascule { display: flex; align-items: center; gap: 6px; font-weight: 400; color: var(--gris); }
@@ -77,3 +77,70 @@ input:focus { outline: 2px solid var(--vert); outline-offset: 0; border-color: v
   #session-courriel { display: none; }
   .marque span { font-size: 14px; }
 }
+
+/* ---------- Onglets ---------- */
+.onglets { display: flex; gap: 4px; padding: 12px 20px 0; max-width: 1600px; margin: 0 auto; }
+.onglet { font: inherit; font-weight: 600; padding: 8px 16px; border: 1px solid var(--ligne); border-bottom: 0; border-radius: 8px 8px 0 0; background: #ecece9; color: var(--gris); cursor: pointer; }
+.onglet.actif { background: #fff; color: var(--encre); box-shadow: inset 0 3px 0 var(--vert); }
+
+/* ---------- Statut ---------- */
+.statut { margin: -6px 0 12px; }
+.pastille { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.pastille.vert { background: #e3f5e3; color: #1d6b1d; }
+.pastille.orange { background: #fff1d6; color: #8a5300; }
+.pastille.rouge { background: #fde4e1; color: #a1271b; }
+.pastille.gris { background: #eee; color: #666; }
+
+/* ---------- Répertoire ---------- */
+.repertoire { max-width: 1600px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 10px; }
+.rep-entete { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.rep-entete input { max-width: 280px; }
+.rep-entete .espace { flex: 1; }
+.rep-tableau { overflow-x: auto; background: #fff; border: 1px solid var(--ligne); border-radius: var(--r); }
+#rep-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+#rep-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--gris); padding: 10px 6px; border-bottom: 1px solid var(--ligne); background: #fafaf8; position: sticky; top: 0; }
+#rep-table td { padding: 3px 4px; border-bottom: 1px solid #f0f0ee; vertical-align: middle; }
+#rep-table tr.inactif td { opacity: .5; }
+#rep-table td input { border: 1px solid transparent; background: transparent; padding: 7px 6px; border-radius: 6px; font-size: 14px; }
+#rep-table td input:hover { border-color: #ddd; background: #fff; }
+#rep-table td input:focus { background: #fff; }
+#rep-table td input { width: 100%; }
+#rep-table td.c-prenom input { min-width: 85px; }
+#rep-table td.c-nom input { min-width: 95px; }
+#rep-table td.c-titre input { min-width: 190px; }
+#rep-table td.c-division input { min-width: 140px; }
+#rep-table td.c-courriel input { min-width: 190px; }
+#rep-table td.c-cellulaire input, #rep-table td.c-bureau input { min-width: 120px; }
+#rep-table td.c-poste input { min-width: 50px; width: 50px; }
+#rep-table td input.erreur { border-color: var(--rouge); background: #fff6f5; }
+#rep-table td input.envoi { opacity: .6; }
+#rep-table td input.ok { background: #e3f5e3; transition: background .6s; }
+.col-actions { white-space: nowrap; position: sticky; right: 0; background: #fff; box-shadow: -8px 0 8px -8px rgba(0,0,0,.18); padding-left: 10px !important; }
+#rep-table th.col-actions { background: #fafaf8; }
+.col-actions .btn-lien { font-size: 13px; margin-left: 6px; }
+.btn.petit { padding: 5px 10px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+/* ---------- Page « Ma signature » ---------- */
+.perso { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; }
+#contenu { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; min-width: 0; }
+#contenu[hidden] { display: none; }
+.perso h1 { margin: 0 0 6px; font-size: 22px; }
+.perso h2 { margin: 0 0 14px; font-size: 18px; }
+.perso p { margin: 0 0 14px; }
+.bandeau-ok { background: #e3f5e3; color: #1d6b1d; font-weight: 600; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; }
+.etapes { display: grid; gap: 18px; }
+.etape { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 12px; }
+.etape .num { width: 28px; height: 28px; border-radius: 50%; background: var(--vert); color: #fff; font-weight: 700; display: grid; place-items: center; }
+.etape ol { margin: 10px 0 0; padding-left: 20px; line-height: 1.5; }
+.etape code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; word-break: break-all; }
+.choix { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.choix-btn { font: inherit; font-size: 14px; padding: 7px 12px; border: 1px solid #cfcfcf; border-radius: 999px; background: #fff; cursor: pointer; }
+.choix-btn.actif { border-color: var(--vert); background: #e3f5e3; font-weight: 600; }
+
+@media (max-width: 800px) {
+  .onglets, .repertoire { padding-left: 16px; padding-right: 16px; }
+}
+
+/* L'aperçu se réduit pour tenir dans l'écran (voir ajusterApercu) */
+.apercu { overflow: hidden; }
