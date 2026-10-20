@@ -99,3 +99,10 @@ alter table public.employes
 -- employes_touch() compte aussi logo_secondaire comme changement de signature.
 -- public.signature_par_jeton_v2(p_jeton uuid) : comme signature_par_jeton, avec logo_secondaire.
 -- (signature_par_jeton v1 n'est plus utilisée par le site; à supprimer un jour.)
+
+-- ---------------------------------------------------------------
+-- Accès réservé aux gestionnaires, appliqué le 19 oct. 2026
+-- ---------------------------------------------------------------
+-- prive.bloquer_domaine_externe() refuse maintenant tout courriel absent de public.gestionnaires.
+-- Trigger retirer_compte_gestionnaire (after delete on public.gestionnaires) :
+--   supprime le compte auth.users correspondant, ce qui coupe l'accès immédiatement.

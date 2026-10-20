@@ -45,6 +45,7 @@ const traduireErreur = (e) => {
   const m = e?.message || '';
   if (/invalid login credentials/i.test(m)) return 'Courriel ou mot de passe incorrect.';
   if (/email not confirmed/i.test(m)) return 'Compte pas encore confirmé. Utilise le lien par courriel ci-dessous.';
+  if (/database error saving new user|acces_refuse|signups not allowed/i.test(m)) return 'Ce courriel n\'a pas accès. Demande à un gestionnaire de t\'ajouter à la liste.';
   if (/rate limit|too many/i.test(m)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
   if (/should be different/i.test(m)) return 'Le nouveau mot de passe doit être différent de l\'ancien.';
   if (/weak|at least/i.test(m)) return 'Mot de passe trop faible. Allonge-le ou ajoute des chiffres et symboles.';
@@ -72,10 +73,10 @@ $('btn-lien-magique').addEventListener('click', async () => {
   message(msg, 'Envoi en cours...');
   const { error } = await sb.auth.signInWithOtp({
     email: courriel,
-    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false },
+    options: { emailRedirectTo: location.origin + location.pathname },
   });
   if (error) return message(msg, traduireErreur(error), 'err');
-  message(msg, `Lien envoyé à ${courriel}. Une fois connecté, clique « Mon mot de passe » en haut pour en choisir un.`, 'ok');
+  message(msg, `Lien envoyé à ${courriel}. Ouvre-le dans ce navigateur, puis clique « Mon mot de passe » en haut pour en choisir un.`, 'ok');
 });
 
 // Choisir ou changer son mot de passe
@@ -340,7 +341,7 @@ function afficherGestionnaires(liste) {
       const b = document.createElement('button');
       b.className = 'btn-lien'; b.textContent = 'Retirer';
       b.addEventListener('click', async () => {
-        if (!confirm(`Retirer ${g.courriel} des gestionnaires?`)) return;
+        if (!confirm(`Retirer ${g.courriel} des gestionnaires? Son compte sera supprimé et il perdra l'accès immédiatement.`)) return;
         const { error } = await sb.from('gestionnaires').delete().eq('courriel', g.courriel);
         if (error) return alert('Erreur : ' + error.message);
         rechargerGestionnaires();
@@ -362,4 +363,5 @@ $('form-gestionnaire').addEventListener('submit', async (ev) => {
   if (error) return alert(error.code === '23505' ? 'Déjà gestionnaire.' : 'Erreur : ' + error.message);
   $('gest-courriel').value = '';
   rechargerGestionnaires();
+  alert(`${c} est ajouté. Il peut maintenant aller sur ${location.host}, entrer son courriel et cliquer « Première connexion ou mot de passe oublié? » pour recevoir son lien.`);
 });

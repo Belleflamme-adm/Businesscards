@@ -43,18 +43,17 @@ Plus tard : l'envoi pourra être automatique avec Resend (domaine belleflamme.ca
 ## Sécurité
 
 - RLS activé sur `employes` et `gestionnaires` : un compte connecté qui n'est pas gestionnaire ne voit rien.
-- Un trigger sur `auth.users` refuse toute création de compte hors `@belleflamme.ca`.
+- Un trigger sur `auth.users` refuse toute création de compte dont le courriel n'est pas dans `gestionnaires`.
 - Les fonctions sensibles sont dans le schéma `prive`, non exposé par l'API.
 - Exception voulue : `signature_par_jeton` et `confirmer_signature` sont publiques (page « Ma signature »). Elles exigent le jeton privé de l'employé et n'exposent que les infos déjà visibles dans sa signature. Si un lien circule par erreur, il suffit de régénérer le jeton (`update employes set jeton = gen_random_uuid() where ...`).
 
 ## Connexion des gestionnaires
 
-- Connexion par **courriel + mot de passe** (le navigateur peut le retenir). La session reste ouverte et se renouvelle seule.
-- **Créer un gestionnaire** :
-  1. Supabase › Authentication › Users › Add user › *Create new user* : courriel @belleflamme.ca, mot de passe temporaire, cocher *Auto Confirm User*.
-  2. Dans l'app, section Gestionnaires : ajouter son courriel.
-  3. Lui donner le mot de passe temporaire; il le change via « Mon mot de passe ».
-- Le lien par courriel reste disponible en secours (mot de passe oublié), mais ne crée jamais de compte (`shouldCreateUser: false`).
+- **La table `gestionnaires` est la seule porte d'entrée.** Un trigger sur `auth.users` refuse la création de tout compte dont le courriel n'y est pas (et hors @belleflamme.ca).
+- **Ajouter un gestionnaire** : dans l'app, section Gestionnaires, ajouter son courriel. Il va ensuite sur le site, entre son courriel, clique « Première connexion ou mot de passe oublié? », ouvre le lien reçu, puis choisit un mot de passe via « Mon mot de passe ».
+- **Retirer un gestionnaire** : le retirer de la liste supprime aussi son compte (trigger `retirer_compte_gestionnaire`). Il perd l'accès immédiatement. On ne peut pas se retirer soi-même.
+- Ensuite, connexion par **courriel + mot de passe** (retenus par le navigateur); la session reste ouverte.
+- **Envoi des liens** : le serveur d'envoi par défaut de Supabase n'envoie qu'aux membres de l'équipe Supabase. Pour les autres gestionnaires, brancher un SMTP (Resend, Microsoft 365) dans Authentication › Emails › SMTP Settings.
 
 ## Configuration Supabase à faire dans le tableau de bord
 
