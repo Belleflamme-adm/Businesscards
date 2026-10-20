@@ -7,8 +7,8 @@ export const BASE_IMG = 'https://belleflamme-business-cards.netlify.app/img';
 // Texte : Segoe UI (Windows, donc Outlook classique) en premier, puis Avenir (Mac, iPhone),
 // proches de la police de la carte originale. Outlook classique exige que la 1re police soit installée.
 const F = "font-family:'Segoe UI',Avenir,'Avenir Next',Arial,Helvetica,sans-serif;";
-// Nom : Arial Black (installée sur Windows et Mac), la plus proche du nom très gras de l'original.
-const FN = "font-family:'Arial Black',Arial,Helvetica,sans-serif;font-weight:900;";
+// Nom : même famille que le texte, en gras (700), moins lourd qu'Arial Black.
+const FN = "font-family:'Segoe UI',Avenir,'Avenir Next',Arial,Helvetica,sans-serif;font-weight:bold;";
 const LIEN = 'color:#111111;text-decoration:none;';
 const VERT = '#3cb43c';
 
@@ -54,7 +54,7 @@ export function signatureHTML(e) {
 <td style="vertical-align:middle;padding-right:10px;"><a href="https://www.belleflamme.ca" style="${LIEN}"><img src="${BASE_IMG}/logo-belleflamme.png" width="192" height="193" alt="Le Groupe Belleflamme" style="display:block;border:0;"></a></td>
 <td width="3" style="background:${VERT};width:3px;font-size:0;line-height:0;">&nbsp;</td>
 <td style="vertical-align:middle;padding-left:16px;">
-<div style="${FN}font-size:26px;line-height:28px;color:#111111;white-space:nowrap;">${esc(nom)}</div>
+<div style="${FN}font-size:29px;line-height:32px;color:#111111;white-space:nowrap;">${esc(nom)}</div>
 <div style="${F}font-size:${division ? 19 : 21}px;line-height:${division ? 22 : 25}px;color:#111111;padding-top:1px;${division ? '' : 'padding-bottom:12px;'}white-space:nowrap;">${titre}</div>
 ${division ? `<div style="${F}font-size:19px;line-height:22px;color:#111111;padding-bottom:12px;white-space:nowrap;">${division}</div>` : ''}
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
