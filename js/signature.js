@@ -4,7 +4,11 @@
 
 export const BASE_IMG = 'https://belleflamme-business-cards.netlify.app/img';
 
-const F = 'font-family:Arial,Helvetica,sans-serif;';
+// Texte : Segoe UI (Windows, donc Outlook classique) en premier, puis Avenir (Mac, iPhone),
+// proches de la police de la carte originale. Outlook classique exige que la 1re police soit installée.
+const F = "font-family:'Segoe UI',Avenir,'Avenir Next',Arial,Helvetica,sans-serif;";
+// Nom : Arial Black (installée sur Windows et Mac), la plus proche du nom très gras de l'original.
+const FN = "font-family:'Arial Black',Arial,Helvetica,sans-serif;font-weight:900;";
 const LIEN = 'color:#111111;text-decoration:none;';
 const VERT = '#3cb43c';
 
@@ -18,10 +22,11 @@ export function formatTel(v) {
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+// Proportions calquées sur la carte originale (1800 px) réduite à environ 30 %
 function ligne(icone, href, texte, alt) {
   return `<tr>
-<td width="26" style="padding:4px 12px 4px 0;vertical-align:middle;"><a href="${href}" style="${LIEN}"><img src="${BASE_IMG}/${icone}" width="22" height="22" alt="${alt}" style="display:block;border:0;"></a></td>
-<td style="${F}font-size:15px;line-height:20px;padding:4px 0;vertical-align:middle;"><a href="${href}" style="${LIEN}">${texte}</a></td>
+<td width="26" style="padding:4px 12px 4px 0;vertical-align:middle;"><a href="${href}" style="${LIEN}"><img src="${BASE_IMG}/${icone}" width="26" height="26" alt="${alt}" style="display:block;border:0;"></a></td>
+<td style="${F}font-size:19px;line-height:22px;padding:4px 0;vertical-align:middle;white-space:nowrap;"><a href="${href}" style="${LIEN}">${texte}</a></td>
 </tr>`;
 }
 
@@ -44,14 +49,14 @@ export function signatureHTML(e) {
   const titre = esc(e.titre);
   const division = e.division ? esc(e.division) : '';
 
-  return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;${F}">
+  return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
 <tr>
-<td style="vertical-align:middle;padding-right:22px;"><a href="https://www.belleflamme.ca" style="${LIEN}"><img src="${BASE_IMG}/logo-belleflamme.png" width="130" height="131" alt="Le Groupe Belleflamme" style="display:block;border:0;"></a></td>
+<td style="vertical-align:middle;padding-right:10px;"><a href="https://www.belleflamme.ca" style="${LIEN}"><img src="${BASE_IMG}/logo-belleflamme.png" width="192" height="193" alt="Le Groupe Belleflamme" style="display:block;border:0;"></a></td>
 <td width="3" style="background:${VERT};width:3px;font-size:0;line-height:0;">&nbsp;</td>
-<td style="vertical-align:middle;padding-left:22px;">
-<div style="${F}font-size:24px;line-height:28px;font-weight:bold;color:#111111;letter-spacing:0.5px;">${esc(nom)}</div>
-<div style="${F}font-size:15px;line-height:20px;color:#222222;padding-top:4px;${division ? '' : 'padding-bottom:10px;'}">${titre}</div>
-${division ? `<div style="${F}font-size:15px;line-height:20px;color:#222222;padding-bottom:10px;">${division}</div>` : ''}
+<td style="vertical-align:middle;padding-left:16px;">
+<div style="${FN}font-size:26px;line-height:28px;color:#111111;white-space:nowrap;">${esc(nom)}</div>
+<div style="${F}font-size:${division ? 19 : 21}px;line-height:${division ? 22 : 25}px;color:#111111;padding-top:1px;${division ? '' : 'padding-bottom:12px;'}white-space:nowrap;">${titre}</div>
+${division ? `<div style="${F}font-size:19px;line-height:22px;color:#111111;padding-bottom:12px;white-space:nowrap;">${division}</div>` : ''}
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
 ${lignes.join('\n')}
 </table>
