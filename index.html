@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Signatures Belleflamme</title>
+<link rel="icon" href="img/logo-belleflamme.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="barre">
+  <div class="marque"><img src="img/logo-belleflamme.png" alt="" width="36" height="36"><span>Signatures courriel</span></div>
+  <div id="session" class="session" hidden>
+    <span id="session-courriel"></span>
+    <button id="btn-deconnexion" class="btn-lien">Déconnexion</button>
+  </div>
+</header>
+
+<!-- Connexion -->
+<main id="ecran-connexion" class="centre" hidden>
+  <form id="form-connexion" class="carte connexion">
+    <h1>Connexion</h1>
+    <p>Entre ton adresse Belleflamme. Tu vas recevoir un lien de connexion par courriel.</p>
+    <label>Courriel<input type="email" id="connexion-courriel" placeholder="prenom@belleflamme.ca" required autocomplete="email"></label>
+    <button class="btn" type="submit">Recevoir le lien</button>
+    <p id="connexion-msg" class="msg" role="status"></p>
+  </form>
+</main>
+
+<!-- Accès refusé -->
+<main id="ecran-refus" class="centre" hidden>
+  <div class="carte connexion">
+    <h1>Accès réservé</h1>
+    <p>Ton compte est connecté, mais il n'est pas dans la liste des gestionnaires. Demande à Simon de t'ajouter.</p>
+  </div>
+</main>
+
+<!-- App -->
+<main id="ecran-app" class="app" hidden>
+  <aside class="liste">
+    <div class="liste-entete">
+      <input type="search" id="recherche" placeholder="Rechercher un employé">
+      <button id="btn-nouveau" class="btn">+ Nouveau</button>
+    </div>
+    <label class="bascule"><input type="checkbox" id="voir-inactifs"> Voir les inactifs</label>
+    <ul id="employes"></ul>
+    <details class="gestionnaires">
+      <summary>Gestionnaires</summary>
+      <ul id="liste-gestionnaires"></ul>
+      <form id="form-gestionnaire" class="ajout-gest">
+        <input type="email" id="gest-courriel" placeholder="prenom@belleflamme.ca" required>
+        <button class="btn btn-sec" type="submit">Ajouter</button>
+      </form>
+    </details>
+  </aside>
+
+  <section class="travail">
+    <form id="form-employe" class="carte">
+      <h2 id="form-titre">Nouvel employé</h2>
+      <div class="grille">
+        <label>Prénom<input name="prenom" required></label>
+        <label>Nom<input name="nom" required></label>
+        <label class="large">Titre<input name="titre" required placeholder="Représentant des ventes externes"></label>
+        <label class="large">Division <small>(optionnel)</small><input name="division" list="divisions" placeholder="Division Climatisation"></label>
+        <label class="large">Courriel<input name="courriel" type="email" required placeholder="prenom@belleflamme.ca"></label>
+        <label>Cellulaire <small>(optionnel)</small><input name="cellulaire" inputmode="tel" placeholder="514 555-1234"></label>
+        <span></span>
+        <label>Bureau <small>(optionnel)</small><input name="bureau" inputmode="tel" placeholder="514 893-1641"></label>
+        <label>Poste <small>(optionnel)</small><input name="poste" inputmode="numeric" placeholder="234"></label>
+      </div>
+      <datalist id="divisions">
+        <option value="Division Climatisation">
+        <option value="Division Foyers">
+        <option value="Division Ventilation">
+        <option value="Division BBQ">
+      </datalist>
+      <div class="actions">
+        <button class="btn" type="submit">Enregistrer</button>
+        <button class="btn btn-sec" type="button" id="btn-actif" hidden>Désactiver</button>
+        <span id="form-msg" class="msg" role="status"></span>
+      </div>
+    </form>
+
+    <div class="carte">
+      <h2>Aperçu</h2>
+      <div id="apercu" class="apercu"></div>
+      <div class="actions">
+        <button class="btn" id="btn-copier">Copier la signature</button>
+        <button class="btn btn-sec" id="btn-telecharger">Télécharger pour Outlook classique</button>
+        <button class="btn btn-sec" id="btn-code">Copier le code HTML</button>
+        <span id="apercu-msg" class="msg" role="status"></span>
+      </div>
+      <details class="aide">
+        <summary>Comment l'installer</summary>
+        <ol>
+          <li><b>Outlook Web / nouvel Outlook :</b> clique « Copier la signature », puis Paramètres › Comptes › Signatures › Nouvelle signature, et colle (Ctrl+V). Choisis-la par défaut pour les nouveaux messages et les réponses.</li>
+          <li><b>Outlook classique (Windows) :</b> clique « Télécharger », puis place le fichier .htm dans <code>%APPDATA%\Microsoft\Signatures</code>. Redémarre Outlook et choisis-la dans Fichier › Options › Courrier › Signatures.</li>
+          <li><b>Cellulaire :</b> l'app Outlook mobile n'accepte que du texte. Utilise une version courte : nom, titre, cel.</li>
+        </ol>
+      </details>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

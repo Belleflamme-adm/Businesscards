@@ -1,0 +1,17 @@
+[build]
+  publish = "."
+
+# Images de signature : URL stables utilisées dans les courriels envoyés.
+# Ne jamais renommer ni supprimer un fichier de /img, sinon les anciennes signatures brisent.
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

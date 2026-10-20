@@ -1,0 +1,79 @@
+:root {
+  --vert: #3cb43c;
+  --vert-fonce: #2b8f2b;
+  --encre: #111;
+  --gris: #6b6b6b;
+  --ligne: #e3e3e3;
+  --fond: #f5f5f3;
+  --carte: #fff;
+  --rouge: #b42318;
+  --r: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--encre); background: var(--fond); font-size: 15px; }
+[hidden] { display: none !important; }
+
+.barre { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px; background: #fff; border-bottom: 3px solid var(--vert); }
+.marque { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; }
+.session { display: flex; align-items: center; gap: 12px; color: var(--gris); font-size: 14px; }
+
+.centre { min-height: calc(100vh - 60px); display: grid; place-items: center; padding: 16px; }
+.carte { background: var(--carte); border: 1px solid var(--ligne); border-radius: var(--r); padding: 20px; }
+.connexion { width: 100%; max-width: 400px; display: grid; gap: 12px; }
+.connexion h1 { margin: 0; font-size: 22px; }
+.connexion p { margin: 0; color: var(--gris); }
+
+label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+label small { font-weight: 400; color: var(--gris); }
+input { font: inherit; padding: 9px 11px; border: 1px solid #cfcfcf; border-radius: 8px; background: #fff; width: 100%; min-width: 0; }
+input:focus { outline: 2px solid var(--vert); outline-offset: 0; border-color: var(--vert); }
+
+.btn { font: inherit; font-weight: 600; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--vert); background: var(--vert); color: #fff; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--vert-fonce); border-color: var(--vert-fonce); }
+.btn-sec { background: #fff; color: var(--encre); border-color: #cfcfcf; }
+.btn-sec:hover { background: #f0f0f0; border-color: #bbb; }
+.btn-lien { background: none; border: 0; color: var(--encre); text-decoration: underline; cursor: pointer; font: inherit; }
+.msg { font-size: 13px; color: var(--gris); }
+.msg.ok { color: var(--vert-fonce); }
+.msg.err { color: var(--rouge); }
+
+.app { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; max-width: 1280px; margin: 0 auto; }
+.liste { display: grid; gap: 10px; align-content: start; }
+.liste-entete { display: flex; gap: 8px; }
+.bascule { display: flex; align-items: center; gap: 6px; font-weight: 400; color: var(--gris); }
+.bascule input { width: auto; }
+#employes { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+#employes li button { width: 100%; text-align: left; background: #fff; border: 1px solid var(--ligne); border-radius: 8px; padding: 9px 12px; cursor: pointer; font: inherit; display: grid; gap: 2px; }
+#employes li button:hover { border-color: #bbb; }
+#employes li button.actif { border-color: var(--vert); box-shadow: inset 3px 0 0 var(--vert); }
+#employes li button .sous { font-size: 12px; color: var(--gris); }
+#employes li button.inactif { opacity: .55; }
+
+.gestionnaires { background: #fff; border: 1px solid var(--ligne); border-radius: 8px; padding: 10px 12px; }
+.gestionnaires summary { cursor: pointer; font-weight: 600; }
+#liste-gestionnaires { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; font-size: 14px; }
+#liste-gestionnaires li { display: flex; justify-content: space-between; gap: 8px; }
+.ajout-gest { display: flex; gap: 6px; }
+
+.travail { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-content: start; min-width: 0; }
+.travail h2 { margin: 0 0 14px; font-size: 18px; }
+.grille { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+.grille .large { grid-column: 1 / -1; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+
+.apercu { background: #fff; border: 1px dashed #cfcfcf; border-radius: 8px; padding: 20px; overflow-x: auto; }
+.aide { margin-top: 14px; color: #333; font-size: 14px; }
+.aide summary { cursor: pointer; font-weight: 600; }
+.aide li { margin: 6px 0; line-height: 1.45; }
+.aide code { background: #f0f0f0; padding: 1px 5px; border-radius: 4px; }
+
+@media (max-width: 800px) {
+  .app { grid-template-columns: minmax(0,1fr); padding: 16px; }
+  .btn { white-space: normal; }
+  .grille { grid-template-columns: minmax(0,1fr); }
+  .grille > span { display: none; }
+  .barre { padding: 10px 16px; }
+  #session-courriel { display: none; }
+  .marque span { font-size: 14px; }
+}

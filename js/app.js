@@ -1,0 +1,259 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_CLE_PUBLIQUE, DOMAINE } from './config.js';
+import { signatureHTML, signatureTexte, fichierOutlook, chiffres } from './signature.js';
+
+const sb = createClient(SUPABASE_URL, SUPABASE_CLE_PUBLIQUE);
+const $ = (id) => document.getElementById(id);
+
+const etat = { employes: [], courant: null, utilisateur: null };
+const form = $('form-employe');
+
+function ecran(nom) {
+  for (const id of ['ecran-connexion', 'ecran-refus', 'ecran-app']) $(id).hidden = id !== nom;
+}
+function message(el, texte, type = '') {
+  el.textContent = texte;
+  el.className = 'msg' + (type ? ' ' + type : '');
+  if (type === 'ok') setTimeout(() => { if (el.textContent === texte) el.textContent = ''; }, 3500);
+}
+
+// ---------- Connexion ----------
+$('form-connexion').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const courriel = $('connexion-courriel').value.trim().toLowerCase();
+  const msg = $('connexion-msg');
+  if (!courriel.endsWith(DOMAINE)) return message(msg, `Seules les adresses ${DOMAINE} sont acceptées.`, 'err');
+  message(msg, 'Envoi en cours...');
+  const { error } = await sb.auth.signInWithOtp({
+    email: courriel,
+    options: { emailRedirectTo: location.origin + location.pathname },
+  });
+  if (error) return message(msg, 'Erreur : ' + error.message, 'err');
+  message(msg, `Lien envoyé à ${courriel}. Ouvre-le sur cet appareil.`, 'ok');
+});
+
+$('btn-deconnexion').addEventListener('click', async () => { await sb.auth.signOut(); });
+
+sb.auth.onAuthStateChange((_evt, session) => { demarrer(session); });
+
+let dernierUtilisateur;
+async function demarrer(session) {
+  const u = session?.user || null;
+  if (u?.id === dernierUtilisateur && u) return;
+  dernierUtilisateur = u?.id;
+  etat.utilisateur = u;
+  $('session').hidden = !u;
+  $('session-courriel').textContent = u?.email || '';
+  if (!u) return ecran('ecran-connexion');
+
+  // Un non-gestionnaire ne voit aucune ligne (RLS)
+  const { data, error } = await sb.from('gestionnaires').select('courriel, nom').order('courriel');
+  if (error || !data?.length) return ecran('ecran-refus');
+  afficherGestionnaires(data);
+  ecran('ecran-app');
+  await chargerEmployes();
+  nouveau();
+}
+
+// ---------- Employés ----------
+async function chargerEmployes() {
+  const { data, error } = await sb.from('employes').select('*').order('prenom').order('nom');
+  if (error) return message($('form-msg'), 'Erreur de chargement : ' + error.message, 'err');
+  etat.employes = data;
+  afficherListe();
+}
+
+function afficherListe() {
+  const q = $('recherche').value.trim().toLowerCase();
+  const inactifs = $('voir-inactifs').checked;
+  const ul = $('employes');
+  ul.replaceChildren();
+  for (const e of etat.employes) {
+    if (!inactifs && !e.actif) continue;
+    const texte = `${e.prenom} ${e.nom} ${e.titre} ${e.courriel}`.toLowerCase();
+    if (q && !texte.includes(q)) continue;
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    if (etat.courant?.id === e.id) b.classList.add('actif');
+    if (!e.actif) b.classList.add('inactif');
+    const n = document.createElement('span'); n.textContent = `${e.prenom} ${e.nom}`;
+    const s = document.createElement('span'); s.className = 'sous'; s.textContent = e.actif ? e.titre : `${e.titre} · inactif`;
+    b.append(n, s);
+    b.addEventListener('click', () => ouvrir(e));
+    li.append(b);
+    ul.append(li);
+  }
+  if (!ul.children.length) {
+    const li = document.createElement('li'); li.className = 'msg'; li.textContent = 'Aucun employé.'; ul.append(li);
+  }
+}
+$('recherche').addEventListener('input', afficherListe);
+$('voir-inactifs').addEventListener('change', afficherListe);
+
+function valeurs() {
+  const f = Object.fromEntries(new FormData(form));
+  for (const k in f) f[k] = f[k].trim();
+  f.courriel = f.courriel.toLowerCase();
+  f.cellulaire = chiffres(f.cellulaire) || null;
+  f.bureau = chiffres(f.bureau) || null;
+  f.poste = f.poste.replace(/\D/g, '') || null;
+  f.division = f.division || null;
+  return f;
+}
+
+function remplir(e) {
+  for (const el of form.elements) if (el.name) el.value = e?.[el.name] ?? '';
+}
+
+function nouveau() {
+  etat.courant = null;
+  remplir(null);
+  $('form-titre').textContent = 'Nouvel employé';
+  $('btn-actif').hidden = true;
+  message($('form-msg'), '');
+  apercu();
+  afficherListe();
+}
+$('btn-nouveau').addEventListener('click', nouveau);
+
+function ouvrir(e) {
+  etat.courant = e;
+  remplir(e);
+  $('form-titre').textContent = `${e.prenom} ${e.nom}`;
+  $('btn-actif').hidden = false;
+  $('btn-actif').textContent = e.actif ? 'Désactiver' : 'Réactiver';
+  message($('form-msg'), '');
+  apercu();
+  afficherListe();
+}
+
+function valider(f) {
+  if (f.cellulaire && f.cellulaire.length !== 10) return 'Le cellulaire doit avoir 10 chiffres.';
+  if (f.bureau && f.bureau.length !== 10) return 'Le numéro de bureau doit avoir 10 chiffres.';
+  if (f.poste && !f.bureau) return 'Un poste a besoin d\'un numéro de bureau.';
+  return null;
+}
+
+form.addEventListener('input', apercu);
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = valeurs();
+  const msg = $('form-msg');
+  const err = valider(f);
+  if (err) return message(msg, err, 'err');
+  message(msg, 'Enregistrement...');
+  const requete = etat.courant
+    ? sb.from('employes').update(f).eq('id', etat.courant.id).select().single()
+    : sb.from('employes').insert(f).select().single();
+  const { data, error } = await requete;
+  if (error) {
+    const doublon = error.code === '23505';
+    return message(msg, doublon ? 'Ce courriel existe déjà.' : 'Erreur : ' + error.message, 'err');
+  }
+  await chargerEmployes();
+  ouvrir(data);
+  message(msg, 'Enregistré.', 'ok');
+});
+
+$('btn-actif').addEventListener('click', async () => {
+  const e = etat.courant; if (!e) return;
+  const { data, error } = await sb.from('employes').update({ actif: !e.actif }).eq('id', e.id).select().single();
+  if (error) return message($('form-msg'), 'Erreur : ' + error.message, 'err');
+  await chargerEmployes();
+  ouvrir(data);
+});
+
+// ---------- Aperçu et export ----------
+function donneesApercu() {
+  const f = valeurs();
+  return {
+    ...f,
+    prenom: f.prenom || 'Prénom', nom: f.nom || 'Nom',
+    titre: f.titre || 'Titre', courriel: f.courriel || 'prenom@belleflamme.ca',
+  };
+}
+function apercu() { $('apercu').innerHTML = signatureHTML(donneesApercu()); }
+
+function pret() {
+  const f = valeurs();
+  if (!f.prenom || !f.nom || !f.titre || !f.courriel) {
+    message($('apercu-msg'), 'Remplis prénom, nom, titre et courriel d\'abord.', 'err');
+    return null;
+  }
+  const err = valider(f);
+  if (err) { message($('apercu-msg'), err, 'err'); return null; }
+  return f;
+}
+
+$('btn-copier').addEventListener('click', async () => {
+  const f = pret(); if (!f) return;
+  const html = signatureHTML(f);
+  try {
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([html], { type: 'text/html' }),
+      'text/plain': new Blob([signatureTexte(f)], { type: 'text/plain' }),
+    })]);
+  } catch {
+    // Repli : copie de la sélection rendue
+    const zone = $('apercu');
+    zone.innerHTML = html;
+    const r = document.createRange(); r.selectNodeContents(zone);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    document.execCommand('copy'); s.removeAllRanges();
+  }
+  message($('apercu-msg'), 'Signature copiée. Colle-la dans Outlook.', 'ok');
+});
+
+$('btn-code').addEventListener('click', async () => {
+  const f = pret(); if (!f) return;
+  await navigator.clipboard.writeText(signatureHTML(f));
+  message($('apercu-msg'), 'Code HTML copié.', 'ok');
+});
+
+$('btn-telecharger').addEventListener('click', () => {
+  const f = pret(); if (!f) return;
+  const blob = new Blob([fichierOutlook(f)], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Belleflamme - ${f.prenom} ${f.nom}.htm`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+// ---------- Gestionnaires ----------
+function afficherGestionnaires(liste) {
+  const ul = $('liste-gestionnaires');
+  ul.replaceChildren();
+  const moi = etat.utilisateur?.email?.toLowerCase();
+  for (const g of liste) {
+    const li = document.createElement('li');
+    const t = document.createElement('span'); t.textContent = g.courriel;
+    li.append(t);
+    if (g.courriel !== moi) {
+      const b = document.createElement('button');
+      b.className = 'btn-lien'; b.textContent = 'Retirer';
+      b.addEventListener('click', async () => {
+        if (!confirm(`Retirer ${g.courriel} des gestionnaires?`)) return;
+        const { error } = await sb.from('gestionnaires').delete().eq('courriel', g.courriel);
+        if (error) return alert('Erreur : ' + error.message);
+        rechargerGestionnaires();
+      });
+      li.append(b);
+    }
+    ul.append(li);
+  }
+}
+async function rechargerGestionnaires() {
+  const { data } = await sb.from('gestionnaires').select('courriel, nom').order('courriel');
+  afficherGestionnaires(data || []);
+}
+$('form-gestionnaire').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const c = $('gest-courriel').value.trim().toLowerCase();
+  if (!c.endsWith(DOMAINE)) return alert(`Seules les adresses ${DOMAINE} sont acceptées.`);
+  const { error } = await sb.from('gestionnaires').insert({ courriel: c });
+  if (error) return alert(error.code === '23505' ? 'Déjà gestionnaire.' : 'Erreur : ' + error.message);
+  $('gest-courriel').value = '';
+  rechargerGestionnaires();
+});
