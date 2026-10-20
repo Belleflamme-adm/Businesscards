@@ -14,20 +14,39 @@
   <div class="marque"><img src="img/logo-belleflamme.png" alt="" width="36" height="36"><span>Signatures courriel</span></div>
   <div id="session" class="session" hidden>
     <span id="session-courriel"></span>
+    <button id="btn-mon-mdp" class="btn-lien">Mon mot de passe</button>
     <button id="btn-deconnexion" class="btn-lien">Déconnexion</button>
   </div>
 </header>
 
 <!-- Connexion -->
 <main id="ecran-connexion" class="centre" hidden>
-  <form id="form-connexion" class="carte connexion">
+  <form id="form-connexion" class="carte connexion" method="post" action="#">
     <h1>Connexion</h1>
-    <p>Entre ton adresse Belleflamme. Tu vas recevoir un lien de connexion par courriel.</p>
-    <label>Courriel<input type="email" id="connexion-courriel" placeholder="prenom@belleflamme.ca" required autocomplete="email"></label>
-    <button class="btn" type="submit">Recevoir le lien</button>
+    <p>Gestionnaires seulement. Ton navigateur peut retenir ton mot de passe.</p>
+    <label>Courriel<input type="email" id="connexion-courriel" name="username" placeholder="prenom@belleflamme.ca" required autocomplete="username"></label>
+    <label>Mot de passe<input type="password" id="connexion-mdp" name="password" required autocomplete="current-password"></label>
+    <button class="btn" type="submit">Se connecter</button>
     <p id="connexion-msg" class="msg" role="status"></p>
+    <button type="button" class="btn-lien petit-lien" id="btn-lien-magique">Mot de passe oublié ou pas encore de mot de passe? Recevoir un lien par courriel</button>
   </form>
 </main>
+
+<!-- Mon mot de passe -->
+<div id="fenetre-mdp" class="voile" hidden>
+  <form id="form-mdp" class="carte connexion" method="post" action="#">
+    <h1>Mon mot de passe</h1>
+    <p>Choisis un mot de passe d'au moins 10 caractères. Ton navigateur te proposera de l'enregistrer.</p>
+    <input type="email" id="mdp-courriel" name="username" autocomplete="username" hidden>
+    <label>Nouveau mot de passe<input type="password" id="mdp-nouveau" name="new-password" required minlength="10" autocomplete="new-password"></label>
+    <label>Confirmer<input type="password" id="mdp-confirme" required minlength="10" autocomplete="new-password"></label>
+    <div class="actions">
+      <button class="btn" type="submit">Enregistrer</button>
+      <button class="btn btn-sec" type="button" id="btn-mdp-annuler">Annuler</button>
+    </div>
+    <p id="mdp-msg" class="msg" role="status"></p>
+  </form>
+</div>
 
 <!-- Accès refusé -->
 <main id="ecran-refus" class="centre" hidden>

@@ -47,6 +47,15 @@ Plus tard : l'envoi pourra être automatique avec Resend (domaine belleflamme.ca
 - Les fonctions sensibles sont dans le schéma `prive`, non exposé par l'API.
 - Exception voulue : `signature_par_jeton` et `confirmer_signature` sont publiques (page « Ma signature »). Elles exigent le jeton privé de l'employé et n'exposent que les infos déjà visibles dans sa signature. Si un lien circule par erreur, il suffit de régénérer le jeton (`update employes set jeton = gen_random_uuid() where ...`).
 
+## Connexion des gestionnaires
+
+- Connexion par **courriel + mot de passe** (le navigateur peut le retenir). La session reste ouverte et se renouvelle seule.
+- **Créer un gestionnaire** :
+  1. Supabase › Authentication › Users › Add user › *Create new user* : courriel @belleflamme.ca, mot de passe temporaire, cocher *Auto Confirm User*.
+  2. Dans l'app, section Gestionnaires : ajouter son courriel.
+  3. Lui donner le mot de passe temporaire; il le change via « Mon mot de passe ».
+- Le lien par courriel reste disponible en secours (mot de passe oublié), mais ne crée jamais de compte (`shouldCreateUser: false`).
+
 ## Configuration Supabase à faire dans le tableau de bord
 
 1. **Authentication › URL Configuration**

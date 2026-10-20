@@ -41,18 +41,66 @@ function message(el, texte, type = '') {
 }
 
 // ---------- Connexion ----------
+const traduireErreur = (e) => {
+  const m = e?.message || '';
+  if (/invalid login credentials/i.test(m)) return 'Courriel ou mot de passe incorrect.';
+  if (/email not confirmed/i.test(m)) return 'Compte pas encore confirmé. Utilise le lien par courriel ci-dessous.';
+  if (/rate limit|too many/i.test(m)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
+  if (/should be different/i.test(m)) return 'Le nouveau mot de passe doit être différent de l\'ancien.';
+  if (/weak|at least/i.test(m)) return 'Mot de passe trop faible. Allonge-le ou ajoute des chiffres et symboles.';
+  return 'Erreur : ' + m;
+};
+
 $('form-connexion').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const courriel = $('connexion-courriel').value.trim().toLowerCase();
   const msg = $('connexion-msg');
   if (!courriel.endsWith(DOMAINE)) return message(msg, `Seules les adresses ${DOMAINE} sont acceptées.`, 'err');
+  message(msg, 'Connexion...');
+  const { error } = await sb.auth.signInWithPassword({ email: courriel, password: $('connexion-mdp').value });
+  if (error) return message(msg, traduireErreur(error), 'err');
+  message(msg, '');
+  $('connexion-mdp').value = '';
+});
+
+// Repli : lien par courriel (premier accès ou mot de passe oublié)
+$('btn-lien-magique').addEventListener('click', async () => {
+  const courriel = $('connexion-courriel').value.trim().toLowerCase();
+  const msg = $('connexion-msg');
+  if (!courriel) return message(msg, 'Entre ton courriel d\'abord.', 'err');
+  if (!courriel.endsWith(DOMAINE)) return message(msg, `Seules les adresses ${DOMAINE} sont acceptées.`, 'err');
   message(msg, 'Envoi en cours...');
   const { error } = await sb.auth.signInWithOtp({
     email: courriel,
-    options: { emailRedirectTo: location.origin + location.pathname },
+    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false },
   });
-  if (error) return message(msg, 'Erreur : ' + error.message, 'err');
-  message(msg, `Lien envoyé à ${courriel}. Ouvre-le sur cet appareil.`, 'ok');
+  if (error) return message(msg, traduireErreur(error), 'err');
+  message(msg, `Lien envoyé à ${courriel}. Une fois connecté, clique « Mon mot de passe » en haut pour en choisir un.`, 'ok');
+});
+
+// Choisir ou changer son mot de passe
+const fenetreMdp = (ouvrir) => {
+  $('fenetre-mdp').hidden = !ouvrir;
+  message($('mdp-msg'), '');
+  if (ouvrir) {
+    $('mdp-courriel').value = etat.utilisateur?.email || '';
+    $('mdp-nouveau').value = ''; $('mdp-confirme').value = '';
+    $('mdp-nouveau').focus();
+  }
+};
+$('btn-mon-mdp').addEventListener('click', () => fenetreMdp(true));
+$('btn-mdp-annuler').addEventListener('click', () => fenetreMdp(false));
+$('fenetre-mdp').addEventListener('click', (ev) => { if (ev.target === $('fenetre-mdp')) fenetreMdp(false); });
+$('form-mdp').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const n = $('mdp-nouveau').value, c = $('mdp-confirme').value, msg = $('mdp-msg');
+  if (n.length < 10) return message(msg, 'Au moins 10 caractères.', 'err');
+  if (n !== c) return message(msg, 'Les deux mots de passe ne sont pas identiques.', 'err');
+  message(msg, 'Enregistrement...');
+  const { error } = await sb.auth.updateUser({ password: n });
+  if (error) return message(msg, traduireErreur(error), 'err');
+  message(msg, 'Mot de passe enregistré.', 'ok');
+  setTimeout(() => fenetreMdp(false), 1200);
 });
 
 $('btn-deconnexion').addEventListener('click', async () => { await sb.auth.signOut(); });
