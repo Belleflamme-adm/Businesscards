@@ -2,7 +2,7 @@
 
 Petite app pour créer les signatures courriel HTML des employés du Groupe Belleflamme.
 
-- **Site** : https://belleflamme-business-cards.netlify.app (Netlify, statique, aucun build)
+- **Site** : https://belleflamme-signature.netlify.app (Netlify, statique, aucun build)
 - **Base de données** : Supabase, projet `Businesscards` (`yldqwjovshipwnrjwdzs`)
 - **Accès** : lien magique par courriel, réservé aux adresses `@belleflamme.ca` inscrites dans la table `gestionnaires`
 
@@ -22,8 +22,10 @@ Petite app pour créer les signatures courriel HTML des employés du Groupe Bell
 
 ## Règle d'or
 
-Les signatures pointent vers `https://belleflamme-business-cards.netlify.app/img/...`.
-**Ne jamais renommer, déplacer ni supprimer un fichier de `img/`**, et ne jamais renommer le site Netlify : chaque courriel déjà envoyé perdrait son logo.
+Les signatures pointent vers `https://belleflamme-signature.netlify.app/img/...`.
+**Ne jamais renommer, déplacer ni supprimer un fichier de `img/`**, et ne plus jamais renommer le site Netlify : chaque courriel déjà envoyé perdrait son logo.
+(Le site s'appelait `belleflamme-business-cards` jusqu'au 19 oct. 2026, avant toute diffusion des signatures.)
+Pour changer d'adresse un jour sans briser les anciens courriels, il faudra un domaine à soi (ex. `signature.belleflamme.ca`) qui redirige.
 Pour changer une image, ajoute un nouveau fichier (ex. `logo-belleflamme-v2.png`) et mets à jour `js/signature.js`.
 
 ## Mise à jour des signatures (option 3)
@@ -48,8 +50,8 @@ Plus tard : l'envoi pourra être automatique avec Resend (domaine belleflamme.ca
 ## Configuration Supabase à faire dans le tableau de bord
 
 1. **Authentication › URL Configuration**
-   - Site URL : `https://belleflamme-business-cards.netlify.app`
-   - Redirect URLs : `https://belleflamme-business-cards.netlify.app/**`
+   - Site URL : `https://belleflamme-signature.netlify.app`
+   - Redirect URLs : `https://belleflamme-signature.netlify.app/**`
 2. **Authentication › Emails › SMTP Settings** : brancher un vrai serveur d'envoi (Resend, Microsoft 365, etc.).
    Sans ça, Supabase n'envoie les liens de connexion qu'aux membres de l'équipe Supabase, avec une limite très basse par heure.
 

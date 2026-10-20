@@ -2,7 +2,7 @@
 // Tableaux + styles en ligne : seule structure fiable dans Outlook et Gmail.
 // Les images pointent vers des URL publiques (jamais de base64).
 
-export const BASE_IMG = 'https://belleflamme-business-cards.netlify.app/img';
+export const BASE_IMG = 'https://belleflamme-signature.netlify.app/img';
 
 // Texte : Segoe UI (Windows, donc Outlook classique) en premier, puis Avenir (Mac, iPhone),
 // proches de la police de la carte originale. Outlook classique exige que la 1re police soit installée.
