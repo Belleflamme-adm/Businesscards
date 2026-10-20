@@ -90,3 +90,12 @@ alter table public.employes
 --   public.confirmer_signature(p_jeton uuid, p_version integer)
 -- Fonction réservée aux gestionnaires (SECURITY INVOKER, donc soumise au RLS) :
 --   public.demander_mise_a_jour_tous()
+
+-- ---------------------------------------------------------------
+-- Logo additionnel (exception par employé), appliqué le 19 oct. 2026
+-- ---------------------------------------------------------------
+alter table public.employes
+  add column logo_secondaire text check (logo_secondaire in ('maison-du-foyer'));
+-- employes_touch() compte aussi logo_secondaire comme changement de signature.
+-- public.signature_par_jeton_v2(p_jeton uuid) : comme signature_par_jeton, avec logo_secondaire.
+-- (signature_par_jeton v1 n'est plus utilisée par le site; à supprimer un jour.)

@@ -9,6 +9,11 @@ export const BASE_IMG = 'https://belleflamme-business-cards.netlify.app/img';
 const F = "font-family:'Segoe UI',Avenir,'Avenir Next',Arial,Helvetica,sans-serif;";
 // Nom : même famille que le texte, en gras (700), moins lourd qu'Arial Black.
 const FN = "font-family:'Segoe UI',Avenir,'Avenir Next',Arial,Helvetica,sans-serif;font-weight:bold;";
+// Logos additionnels (exceptions par employé). La clé correspond à employes.logo_secondaire.
+export const LOGOS_SECONDAIRES = {
+  'maison-du-foyer': { fichier: 'logo-maison-du-foyer.png', largeur: 120, hauteur: 55, alt: 'La Maison du Foyer', nom: 'La Maison du Foyer' },
+};
+
 const LIEN = 'color:#111111;text-decoration:none;';
 const VERT = '#3cb43c';
 
@@ -46,12 +51,14 @@ export function signatureHTML(e) {
     lignes.push(ligne('icone-bureau.png', href, `bur. ${formatTel(bur)}${poste ? ' poste ' + poste : ''}`, 'Bureau'));
   }
 
+  const logo2 = LOGOS_SECONDAIRES[e.logo_secondaire] || null;
   const titre = esc(e.titre);
   const division = e.division ? esc(e.division) : '';
 
   return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
 <tr>
 <td style="vertical-align:middle;padding-right:10px;"><a href="https://www.belleflamme.ca" style="${LIEN}"><img src="${BASE_IMG}/logo-belleflamme.png" width="192" height="193" alt="Le Groupe Belleflamme" style="display:block;border:0;"></a></td>
+${logo2 ? `<td style="vertical-align:middle;padding-right:14px;"><img src="${BASE_IMG}/${logo2.fichier}" width="${logo2.largeur}" height="${logo2.hauteur}" alt="${logo2.alt}" style="display:block;border:0;"></td>` : ''}
 <td width="3" style="background:${VERT};width:3px;font-size:0;line-height:0;">&nbsp;</td>
 <td style="vertical-align:middle;padding-left:16px;">
 <div style="${FN}font-size:29px;line-height:32px;color:#111111;white-space:nowrap;">${esc(nom)}</div>

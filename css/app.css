@@ -144,3 +144,5 @@ input:focus { outline: 2px solid var(--vert); outline-offset: 0; border-color: v
 
 /* L'aperçu se réduit pour tenir dans l'écran (voir ajusterApercu) */
 .apercu { overflow: hidden; }
+
+select { font: inherit; padding: 9px 11px; border: 1px solid #cfcfcf; border-radius: 8px; background: #fff; width: 100%; }

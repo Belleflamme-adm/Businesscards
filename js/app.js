@@ -122,6 +122,7 @@ function valeurs() {
   f.bureau = chiffres(f.bureau) || null;
   f.poste = f.poste.replace(/\D/g, '') || null;
   f.division = f.division || null;
+  f.logo_secondaire = f.logo_secondaire || null;
   return f;
 }
 
