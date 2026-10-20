@@ -16,6 +16,8 @@ Petite app pour créer les signatures courriel HTML des employés du Groupe Bell
 | `js/repertoire.js` | Onglet Répertoire : tous les employés, modifiables dans les cellules |
 | `js/suivi.js` | Statut de signature (à jour / à mettre à jour) et envoi du lien |
 | `ma-signature.html`, `js/ma-signature.js` | Page personnelle de chaque employé (lien privé) : copier, télécharger, confirmer |
+| `js/logo-import.js` | Prépare un logo téléversé (PDF 1re page ou image) : recadrage, taille courriel, PNG |
+| `netlify/functions/logos.mjs` | `POST /api/logos` (gestionnaires seulement) et `GET /logos/:cle` : logos stockés dans Netlify Blobs |
 | `js/config.js` | URL et clé **publique** Supabase (sans danger côté navigateur, la sécurité est dans les règles RLS) |
 | `img/` | Logo et icônes utilisés par **toutes les signatures envoyées** |
 | `supabase/schema.sql` | Référence du schéma (déjà appliqué) |
@@ -27,6 +29,13 @@ Les signatures pointent vers `https://belleflamme-signature.netlify.app/img/...`
 (Le site s'appelait `belleflamme-business-cards` jusqu'au 19 oct. 2026, avant toute diffusion des signatures.)
 Pour changer d'adresse un jour sans briser les anciens courriels, il faudra un domaine à soi (ex. `signature.belleflamme.ca`) qui redirige.
 Pour changer une image, ajoute un nouveau fichier (ex. `logo-belleflamme-v2.png`) et mets à jour `js/signature.js`.
+
+## Logos additionnels
+
+- Fiche d'un employé › **Téléverser un logo** : PDF (1re page), PNG, JPG, WebP ou SVG. Les marges sont retirées et le logo est réduit à 140 × 70 px max (PNG haute densité).
+- Les fichiers sont stockés dans **Netlify Blobs** (pas Supabase : le plan gratuit de Supabase se met en pause après 7 jours d'inactivité, ce qui ferait disparaître le logo des courriels).
+- Chaque téléversement a une adresse unique qui ne change jamais. Pour corriger un logo, téléverse une nouvelle version et choisis-la dans les fiches concernées.
+- La liste est dans la table `logos`; `employes.logo_id` indique le logo de chaque employé (l'ancienne colonne `logo_secondaire` n'est plus utilisée).
 
 ## Mise à jour des signatures (option 3)
 

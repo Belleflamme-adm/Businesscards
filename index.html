@@ -116,12 +116,24 @@
         <span></span>
         <label>Bureau <small>(optionnel)</small><input name="bureau" inputmode="tel" placeholder="514 893-1641"></label>
         <label>Poste <small>(optionnel)</small><input name="poste" inputmode="numeric" placeholder="234"></label>
-        <label class="large">Logo additionnel <small>(exception)</small>
-          <select name="logo_secondaire">
-            <option value="">Aucun</option>
-            <option value="maison-du-foyer">La Maison du Foyer</option>
-          </select>
-        </label>
+        <div class="large logo-choix">
+          <label>Logo additionnel <small>(exception)</small>
+            <select name="logo_id" id="champ-logo"><option value="">Aucun</option></select>
+          </label>
+          <button type="button" class="btn btn-sec" id="btn-televerser">Téléverser un logo</button>
+        </div>
+        <div class="large televersement" id="zone-televersement" hidden>
+          <label>Fichier <small>(PDF, PNG, JPG, WebP ou SVG)</small>
+            <input type="file" id="logo-fichier" accept="application/pdf,image/png,image/jpeg,image/webp,image/svg+xml">
+          </label>
+          <label>Nom du logo<input id="logo-nom" placeholder="Ex. La Maison du Foyer" maxlength="60"></label>
+          <div class="logo-apercu" id="logo-apercu" hidden><img id="logo-apercu-img" alt=""><span id="logo-dim" class="msg"></span></div>
+          <p id="logo-msg" class="msg" role="status"></p>
+          <div class="actions">
+            <button type="button" class="btn" id="btn-logo-ajouter" disabled>Ajouter ce logo</button>
+            <button type="button" class="btn btn-sec" id="btn-logo-annuler">Annuler</button>
+          </div>
+        </div>
       </div>
       <datalist id="divisions">
         <option value="Division Climatisation">

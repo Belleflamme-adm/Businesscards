@@ -13,7 +13,7 @@ function dire(el, t, type = '') { el.textContent = t; el.className = 'msg' + (ty
 
 async function charger() {
   const uuid = /^[0-9a-f-]{36}$/i.test(jeton);
-  const { data, error } = uuid ? await sb.rpc('signature_par_jeton_v2', { p_jeton: jeton }) : { data: null };
+  const { data, error } = uuid ? await sb.rpc('signature_par_jeton_v3', { p_jeton: jeton }) : { data: null };
   $('chargement').hidden = true;
   if (error || !data?.length) { $('invalide').hidden = false; return; }
   emp = data[0];

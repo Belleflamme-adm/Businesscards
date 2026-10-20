@@ -118,3 +118,11 @@ alter table public.gestionnaires
 --   puis marque l'invitation comme utilisée.
 -- public.invitation_gestionnaire(p_invitation uuid) (publique) : courriel + validité, pour /bienvenue.html.
 -- Réinitialisation = retirer puis rajouter le gestionnaire (nouveau jeton; le trigger supprime l'ancien compte).
+
+-- ---------------------------------------------------------------
+-- Logos téléversés, appliqué le 19 oct. 2026
+-- ---------------------------------------------------------------
+-- public.logos (id, nom, url, largeur, hauteur, actif, created_at, created_by), RLS gestionnaires (lecture, ajout, modification).
+-- url doit commencer par https://belleflamme-signature.netlify.app/ (images servies par Netlify Blobs ou /img).
+-- employes.logo_id -> logos.id (remplace logo_secondaire). employes_touch() compte logo_id comme changement.
+-- public.signature_par_jeton_v3(p_jeton uuid) : signature + logo_nom, logo_url, logo_largeur, logo_hauteur.

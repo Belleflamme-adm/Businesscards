@@ -3,12 +3,13 @@ import { SUPABASE_URL, SUPABASE_CLE_PUBLIQUE, DOMAINE } from './config.js';
 import { signatureHTML, signatureTexte, fichierOutlook, chiffres, ajusterApercu } from './signature.js';
 import { statut, envoyerLien, lienSignature } from './suivi.js';
 import { creerRepertoire } from './repertoire.js';
+import { preparerLogo } from './logo-import.js';
 
 const sb = createClient(SUPABASE_URL, SUPABASE_CLE_PUBLIQUE);
 const $ = (id) => document.getElementById(id);
 const CHAMPS_GEST = 'courriel, nom, invitation, invitation_utilisee_le';
 
-const etat = { employes: [], courant: null, utilisateur: null, vue: 'fiches' };
+const etat = { employes: [], logos: [], courant: null, utilisateur: null, vue: 'fiches' };
 const form = $('form-employe');
 
 function ecran(nom) {
@@ -125,6 +126,7 @@ async function demarrer(session) {
   if (error || !data?.length) return ecran('ecran-refus');
   afficherGestionnaires(data);
   ecran('ecran-app');
+  await chargerLogos();
   await chargerEmployes();
   nouveau();
 }
@@ -173,7 +175,7 @@ function valeurs() {
   f.bureau = chiffres(f.bureau) || null;
   f.poste = f.poste.replace(/\D/g, '') || null;
   f.division = f.division || null;
-  f.logo_secondaire = f.logo_secondaire || null;
+  f.logo_id = f.logo_id || null;
   return f;
 }
 
@@ -272,8 +274,14 @@ $('btn-actif').addEventListener('click', async () => {
 });
 
 // ---------- Aperçu et export ----------
+// Ajoute l'adresse et la taille du logo additionnel choisi
+function avecLogo(f) {
+  const l = etat.logos.find((x) => x.id === f.logo_id);
+  return l ? { ...f, logo_url: l.url, logo_largeur: l.largeur, logo_hauteur: l.hauteur, logo_nom: l.nom } : f;
+}
+
 function donneesApercu() {
-  const f = valeurs();
+  const f = avecLogo(valeurs());
   return {
     ...f,
     prenom: f.prenom || 'Prénom', nom: f.nom || 'Nom',
@@ -291,7 +299,7 @@ function pret() {
   }
   const err = valider(f);
   if (err) { message($('apercu-msg'), err, 'err'); return null; }
-  return f;
+  return avecLogo(f);
 }
 
 $('btn-copier').addEventListener('click', async () => {
@@ -412,4 +420,75 @@ $('form-gestionnaire').addEventListener('submit', async (ev) => {
   $('gest-courriel').value = '';
   await rechargerGestionnaires();
   envoyerInvitation(data);
+});
+
+// ---------- Logos additionnels ----------
+async function chargerLogos(choisir) {
+  const { data } = await sb.from('logos').select('*').eq('actif', true).order('nom');
+  etat.logos = data || [];
+  const sel = $('champ-logo');
+  const garde = choisir ?? sel.value;
+  sel.replaceChildren(new Option('Aucun', ''));
+  for (const l of etat.logos) sel.add(new Option(l.nom, l.id));
+  // Un logo désactivé encore utilisé par la fiche ouverte reste visible
+  sel.value = etat.logos.some((l) => l.id === garde) ? garde : '';
+}
+
+let logoPrepare = null;
+function fermerTeleversement() {
+  $('zone-televersement').hidden = true;
+  $('logo-fichier').value = ''; $('logo-nom').value = '';
+  $('logo-apercu').hidden = true; $('btn-logo-ajouter').disabled = true;
+  message($('logo-msg'), ''); logoPrepare = null;
+}
+$('logo-nom').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); $('btn-logo-ajouter').click(); } });
+$('btn-televerser').addEventListener('click', () => { $('zone-televersement').hidden = false; $('logo-fichier').focus(); });
+$('btn-logo-annuler').addEventListener('click', fermerTeleversement);
+
+$('logo-fichier').addEventListener('change', async () => {
+  const f = $('logo-fichier').files[0];
+  logoPrepare = null; $('btn-logo-ajouter').disabled = true; $('logo-apercu').hidden = true;
+  if (!f) return;
+  if (!$('logo-nom').value) $('logo-nom').value = f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').slice(0, 60);
+  message($('logo-msg'), f.type === 'application/pdf' ? 'Lecture du PDF...' : 'Préparation du logo...');
+  try {
+    logoPrepare = await preparerLogo(f);
+    $('logo-apercu-img').src = logoPrepare.apercu;
+    $('logo-apercu-img').width = logoPrepare.largeur; $('logo-apercu-img').height = logoPrepare.hauteur;
+    $('logo-dim').textContent = `Taille dans la signature : ${logoPrepare.largeur} × ${logoPrepare.hauteur} px (marges retirées automatiquement)`;
+    $('logo-apercu').hidden = false;
+    $('btn-logo-ajouter').disabled = false;
+    message($('logo-msg'), logoPrepare.avertissement, logoPrepare.avertissement ? 'err' : '');
+  } catch (e) {
+    message($('logo-msg'), e.message || 'Impossible de lire ce fichier.', 'err');
+  }
+});
+
+$('btn-logo-ajouter').addEventListener('click', async () => {
+  const nom = $('logo-nom').value.trim();
+  if (!nom) return message($('logo-msg'), 'Donne un nom au logo.', 'err');
+  if (!logoPrepare) return;
+  $('btn-logo-ajouter').disabled = true;
+  message($('logo-msg'), 'Téléversement...');
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const r = await fetch(`/api/logos?nom=${encodeURIComponent(nom)}`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${session?.access_token}`, 'content-type': 'image/png' },
+      body: logoPrepare.blob,
+    });
+    const rep = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(rep.erreur || `Erreur ${r.status}`);
+    const { data, error } = await sb.from('logos')
+      .insert({ nom, url: rep.url, largeur: logoPrepare.largeur, hauteur: logoPrepare.hauteur })
+      .select().single();
+    if (error) throw new Error(error.message);
+    await chargerLogos(data.id);
+    fermerTeleversement();
+    apercu();
+    message($('form-msg'), `Logo « ${nom} » ajouté et choisi. Clique Enregistrer pour l'appliquer à cet employé.`, 'ok');
+  } catch (e) {
+    $('btn-logo-ajouter').disabled = false;
+    message($('logo-msg'), e.message || 'Le téléversement a échoué.', 'err');
+  }
 });

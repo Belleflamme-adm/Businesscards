@@ -158,3 +158,12 @@ select { font: inherit; padding: 9px 11px; border: 1px solid #cfcfcf; border-rad
 .gest-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; }
 .gest-actions .btn-lien { font-size: 13px; padding: 0; }
 .connexion a.btn { text-align: center; text-decoration: none; }
+
+/* Logos additionnels */
+.logo-choix { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: end; }
+.televersement { display: grid; gap: 10px; padding: 14px; border: 1px dashed #bcd9bc; border-radius: 10px; background: #f7fbf7; }
+.televersement .actions { margin-top: 0; }
+.logo-apercu { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px; background: #fff; border: 1px solid var(--ligne); border-radius: 8px; }
+.logo-apercu img { display: block; }
+input[type=file] { padding: 7px; background: #fff; }
+@media (max-width: 800px) { .logo-choix { grid-template-columns: minmax(0,1fr); } }
