@@ -37,6 +37,13 @@ Pour changer une image, ajoute un nouveau fichier (ex. `logo-belleflamme-v2.png`
 - Chaque téléversement a une adresse unique qui ne change jamais. Pour corriger un logo, téléverse une nouvelle version et choisis-la dans les fiches concernées.
 - La liste est dans la table `logos`; `employes.logo_id` indique le logo de chaque employé (l'ancienne colonne `logo_secondaire` n'est plus utilisée).
 
+## Garder Supabase actif (plan gratuit)
+
+- Tâche planifiée Netlify `garder-actif` : chaque jour à 13 h 05 UTC, elle appelle `public.garder_actif()` (une lecture en base, ne renvoie que l'heure).
+- But : éviter la pause automatique du plan gratuit après 7 jours de faible activité.
+- Suivi : Netlify › Logs › Functions › garder-actif. Un message « ÉCHEC » veut dire que le projet est peut-être en pause : le restaurer dans Supabase.
+- Solution garantie : passer le projet au plan Pro de Supabase (aucune pause).
+
 ## Mise à jour des signatures (option 3)
 
 Une signature collée dans Outlook est une copie figée : Microsoft n'offre aucun moyen de la remplacer à distance.
